@@ -20,6 +20,7 @@ Template repository for writing a [Horae](https://github.com/horae-dev/horae) pl
 | `tests/test_stdio.py` | The plugin starts and answers over stdio, as the core's plugin host runs it. |
 | `scripts/rename.py` | Renames the example to your plugin in one step (see below). |
 | `.github/workflows/ci.yml` | Lockfile, ruff, mypy (strict), pytest with an 85% coverage gate, gitleaks, and the aggregate **CI OK** check. In this repository only, **Template copy** also renames a copy of the template with `scripts/rename.py` and runs those checks on it. |
+| `docs/authoring-checklist.md` | The [plugin authoring checklist](docs/authoring-checklist.md): permissions, secrets, untrusted input, recorded fixtures, degraded handling, docs and release. Go through it before each pull request and release. |
 | `graft.yaml`, `AGENTS.md` | Review policy and the working rules for agents and humans. |
 
 `horae-sdk` is not on PyPI yet: `pyproject.toml` takes it from the core repository's `main`
@@ -68,7 +69,7 @@ dependency bump. Installing it clones the core repository, which must stay publi
    `HORAE_SDK_RECORD=1 uv run pytest` writes the current outputs into `expect`. Review the diff
    before committing: what you commit is what CI checks. Include hostile inputs (Tasks
    signifiers, Markdown, links) for every untrusted field.
-7. **Run CI locally**, as CI does:
+7. **Check your work** against the [authoring checklist](docs/authoring-checklist.md), then **run CI locally**, as CI does:
 
    ```
    uv lock --check
