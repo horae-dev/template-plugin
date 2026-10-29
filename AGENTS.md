@@ -25,6 +25,7 @@ uv run mypy                       # types (strict)
 uv run pytest --cov               # tests: recordings replayed, manifest checked, stdio served; coverage gate 85%
 HORAE_SDK_RECORD=1 uv run pytest  # rewrite tests/recordings from the current outputs (review the diff; refused in CI)
 uv run python -m example_plugin --manifest > plugin.yaml   # regenerate the manifest
+python3 scripts/rename.py <dist-name> <package> <plugin-name>  # once, on a fresh copy of the template
 uv run pre-commit run --all-files # ruff + gitleaks
 ```
 CI runs the same checks; the aggregate **CI OK** check must be green before merge.
@@ -47,12 +48,12 @@ Graft-Model: <model id>
 Graft-Task: #<issue number>
 ```
 
-Set `GRAFT_AGENT`, `GRAFT_MODEL` and `GRAFT_TASK` and use Graft's `prepare-commit-msg` hook, or add the trailers yourself (`git commit --trailer ...`).
+Add the trailers yourself: `git commit --trailer "Graft-Agent: claude-code" --trailer "Graft-Model: <model id>" --trailer "Graft-Task: #<issue number>"`. For work tracked in another repository's issue, write it as `Graft-Task: <owner>/<repo>#<issue number>`.
 
 ## Review
 - Graft posts an intent card and applies [`graft.yaml`](graft.yaml).
 - Trivial and small low-risk changes can be approved without a human.
-- Changes touching sensitive paths (`plugin.yaml` (permissions), anything under `auth/`, workflows, `pyproject.toml` (dependencies), `renovate.json`), large changes and anything Graft rates `sensitive` need the maintainer.
+- Changes touching sensitive paths (`plugin.yaml` (permissions), anything under `auth/`, workflows, `pyproject.toml` (dependencies), `uv.lock` (the pinned dependencies, including the horae-sdk commit), `.pre-commit-config.yaml`, `renovate.json`), large changes and anything Graft rates `sensitive` need the maintainer.
 - Address review comments in new commits; don't force-push over reviewed commits.
 
 ## Definition of done

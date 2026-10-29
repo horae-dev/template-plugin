@@ -438,7 +438,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "horae-sdk", git = "https://github.com/horae-dev/horae?subdirectory=sdk&rev=7564b08fcbcf9d17d123b5201db97704a929eb20" }]
+requires-dist = [{ name = "horae-sdk", git = "https://github.com/horae-dev/horae?subdirectory=sdk&branch=main" }]
 
 [package.metadata.requires-dev]
 dev = [
@@ -453,7 +453,7 @@ dev = [
 [[package]]
 name = "horae-sdk"
 version = "0.1.0"
-source = { git = "https://github.com/horae-dev/horae?subdirectory=sdk&rev=7564b08fcbcf9d17d123b5201db97704a929eb20#7564b08fcbcf9d17d123b5201db97704a929eb20" }
+source = { git = "https://github.com/horae-dev/horae?subdirectory=sdk&branch=main#7564b08fcbcf9d17d123b5201db97704a929eb20" }
 dependencies = [
     { name = "anyio" },
     { name = "mcp" },

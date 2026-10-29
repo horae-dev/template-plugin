@@ -5,7 +5,11 @@
   "pre-commit": { "enabled": true },
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
-  "lockFileMaintenance": { "enabled": true },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "description": "Weekly uv.lock refresh. It also moves horae-sdk to the latest commit of the core's main: pyproject.toml takes it from the branch and uv.lock pins the commit. A git commit has no release timestamp, so the 7-day age cannot apply: review that bump like any dependency.",
+    "schedule": ["before 6am on monday"]
+  },
   "customManagers": [
     {
       "customType": "regex",
@@ -15,17 +19,6 @@
         "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>[^\\s]+)\\n\\s*[A-Z_]+_VERSION: (?<currentValue>[\\w.-]+)"
       ],
       "extractVersionTemplate": "^v?(?<version>.+)$"
-    },
-    {
-      "customType": "regex",
-      "description": "horae-sdk from the core repository's main, pinned to a commit in [tool.uv.sources] until it is on PyPI (then delete this manager). Run `uv lock` on the pull request: the Lockfile check fails until uv.lock follows the new rev.",
-      "managerFilePatterns": ["/^pyproject\\.toml$/"],
-      "matchStrings": [
-        "horae-sdk = \\{ git = \"(?<packageName>[^\"]+)\", rev = \"(?<currentDigest>[0-9a-f]{40})\""
-      ],
-      "depNameTemplate": "horae-sdk (git)",
-      "datasourceTemplate": "git-refs",
-      "currentValueTemplate": "main"
     }
   ],
   "packageRules": [
@@ -33,12 +26,6 @@
       "groupName": "ruff",
       "minimumReleaseAge": "7 days",
       "matchPackageNames": ["ruff"]
-    },
-    {
-      "description": "A git commit has no release timestamp, so the 7-day age cannot apply: bump the core pin weekly instead, and review it like any dependency.",
-      "matchDepNames": ["horae-sdk (git)"],
-      "minimumReleaseAge": null,
-      "schedule": ["before 6am on monday"]
     }
   ]
 }

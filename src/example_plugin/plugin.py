@@ -17,6 +17,7 @@ from typing import Any, Protocol
 from horae_sdk import Call, Output, Permissions, Plugin, intents
 
 NAME = "example"
+"""The plugin's name, also the namespace of its refs (`example.inbox`) and fingerprints."""
 VERSION = "0.1.0"
 COMMAND = ["python3", "-m", "example_plugin"]
 """`runtime.command` of `plugin.yaml`. When installing, pin an absolute interpreter that has
@@ -50,7 +51,7 @@ def build(inbox: Inbox) -> Plugin:
         description="Proposes a task to reply to each message of a folder.",
     )
 
-    @plugin.source("example.inbox")
+    @plugin.source(f"{NAME}.inbox")
     def inbox_source(call: Call, folder: str = "inbox") -> Output:
         # `folder` is a pipeline parameter (trusted); every message field is untrusted data.
         seen: list[dict[str, str]] = []

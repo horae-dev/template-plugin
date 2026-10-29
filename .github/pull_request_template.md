@@ -16,7 +16,6 @@ Closes #<issue>
 - [ ] `plugin.yaml` regenerated (`uv run python -m example_plugin --manifest > plugin.yaml`) if tools or permissions changed
 - [ ] Recordings in `tests/recordings/` are synthetic (no personal data, no secret) and their diff reviewed
 - [ ] Commits carry `Graft-Agent`, `Graft-Model` and `Graft-Task` trailers
-- [ ] Plugin authoring checklist (coming in horae-dev/template-plugin#3)
 
 ## Declared additions
 

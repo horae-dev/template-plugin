@@ -1,5 +1,5 @@
 [project]
-# Rename: the distribution name, and the package below (src/example_plugin).
+# scripts/rename.py renames the distribution and its package (src/example_plugin).
 name = "horae-plugin-example"
 version = "0.1.0"
 description = "An example Horae plugin: one source that proposes a task per message."
@@ -28,11 +28,12 @@ dev = [
     "types-pyyaml>=6",
 ]
 
-# horae-sdk is not on PyPI yet: it comes from the core repository, pinned to a full commit of
-# main (Renovate bumps the rev; run `uv lock` on its pull request). Once horae-sdk is
-# published, delete this table: the `horae-sdk` requirement above then resolves from PyPI.
+# horae-sdk is not on PyPI yet: it comes from the core repository's main branch. uv.lock pins
+# the exact commit (CI checks the lock, so builds are reproducible); Renovate's weekly lock
+# file maintenance moves it to the latest main, or run `uv lock --upgrade-package horae-sdk`.
+# Once horae-sdk is published, delete this table: the requirement above then resolves from PyPI.
 [tool.uv.sources]
-horae-sdk = { git = "https://github.com/horae-dev/horae", rev = "7564b08fcbcf9d17d123b5201db97704a929eb20", subdirectory = "sdk" }
+horae-sdk = { git = "https://github.com/horae-dev/horae", branch = "main", subdirectory = "sdk" }
 
 [tool.uv]
 required-version = ">=0.13"
@@ -51,7 +52,7 @@ select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "S", "PT"]
 
 [tool.mypy]
 strict = true
-files = ["src", "tests"]
+files = ["src", "tests", "scripts"]
 python_version = "3.12"
 warn_unreachable = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]

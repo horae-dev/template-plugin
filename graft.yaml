@@ -9,7 +9,9 @@ sensitive_paths:
   - "**/auth/**"
   - ".github/workflows/**"
   - "Dockerfile"
-  - "pyproject.toml" # dependencies, including the pinned horae-sdk source
+  - "pyproject.toml" # dependencies, including the horae-sdk source
+  - "uv.lock" # the pinned dependencies, including the horae-sdk commit
+  - ".pre-commit-config.yaml" # hooks run on contributors' machines
   - "renovate.json"
 
 # When nothing else matches: one human.
