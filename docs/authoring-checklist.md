@@ -5,7 +5,7 @@ sources instead of repeating them; when they disagree with this page, they win. 
 request template links here.
 
 Sources: the core's [security model](https://github.com/horae-dev/horae/blob/main/docs/security.md)
-(the threat rows T02, T03, T05, T06, T08, T09), the
+(the threat rows T01, T02, T03, T04, T05, T06, T07, T08, T09), the
 [plan](https://github.com/horae-dev/horae/blob/main/docs/PLAN.md) (sections 3.3 and 4), the
 [SDK README](https://github.com/horae-dev/horae/blob/main/sdk/README.md) and the
 [manifest schema](https://github.com/horae-dev/horae/blob/main/schemas/plugin-manifest/v1.json).
@@ -13,7 +13,8 @@ Sources: the core's [security model](https://github.com/horae-dev/horae/blob/mai
 ## Permissions
 
 A plugin gets only what `plugin.yaml` declares, approved when it is installed. Undeclared
-access is a bug, and from milestone M5 it is blocked (T06).
+access is a bug, and from milestone M5 the isolated tier blocks undeclared network and
+filesystem access (T04, T05, PLAN §3.3). Until then the core checks the intents and injects only the declared secrets.
 
 - [ ] `PERMISSIONS` in `plugin.py` lists the least you need, and `plugin.yaml` was
   regenerated from it (`uv run python -m example_plugin --manifest > plugin.yaml`).
@@ -21,8 +22,13 @@ access is a bug, and from milestone M5 it is blocked (T06).
   `note.append_section`, `note.replace_owned_block`, `task.create`, `task.update_status`,
   `notify.push`, `http.post`. A pure source declares none. The core rejects the whole step
   for an undeclared intent.
-- [ ] **Network**: one entry per host name the plugin connects to, no `localhost`, no IP
-  literal. Each is justified in the PR ("Declared additions").
+- [ ] **Network**: one entry per host the plugin connects to, justified in the PR ("Declared
+  additions"). A host is a lowercase DNS name, with no port, scheme or wildcard; a single-label
+  name (a Docker service name) is allowed; `localhost` and IP literals are refused (manifest
+  schema, schemas README). From M5 the egress proxy refuses names that resolve to private or
+  link-local addresses (T07, planned #50), so a service on your LAN will be blocked later. An
+  `http.post` URL is `https` only, with no user info and no fragment, and redirects are never
+  followed.
 - [ ] **Secrets**: one entry per environment variable the plugin reads, justified. The host
   injects only these, in a clean environment. Names starting with `HORAE_`, `LD_`, `DYLD_` or
   `PYTHON`, `PATH` and `HOME` are refused.
@@ -57,12 +63,21 @@ untrusted data, including a transform's `call.input`.
 - [ ] No free-form URL in an intent: an `http.post` URL or a notification link comes from
   configuration or a fixed template, never from fetched content (T05, T06). Declare the host.
 - [ ] A path to read or write comes from the trusted `call.paths` configuration and is checked
-  with `call.paths.allowed(path)`, never from untrusted data.
+  with `call.paths.allowed(path)` for reading and `call.paths.allowed(path, write=True)` for
+  writing, never from untrusted data. The default (`write=False`) accepts a `read` or a `write`
+  entry, and a `write` entry implies read. It returns the resolved real path, or `None`.
 - [ ] Use `intents.fingerprint(...)` for stable identities; do not build them by hand from raw
-  text.
+  text. Build them from the service's stable id (never a title, timestamp, index or random
+  value). `task.update_status` only accepts a fingerprint present in the collected input (T01,
+  schemas decision 30).
+- [ ] Be deterministic: two runs on the same input must give identical data and intents in the
+  same order (no `now()`, no random, no unordered iteration). Replay and the reuse of an
+  unchanged input depend on it.
 - [ ] Bound the work: cap the number of items, the size of each field and of the whole result.
   The SDK refuses more than 256 intents and a message over 8 MiB, and the core bounds stderr,
-  intent payloads and the run time (T08), but a plugin that hits them fails the step.
+  intent payloads and the run time (T08). A message over 8 MiB kills the process
+  (`output_too_large`); in a `collect` with other sources that is only a degraded step. More
+  than 256 intents fails the step.
 - [ ] One malformed or hostile item is skipped or neutralised, not allowed to abort the whole
   call.
 
@@ -78,7 +93,7 @@ untrusted data, including a transform's `call.input`.
 - [ ] Recordings are rewritten **locally** with `HORAE_SDK_RECORD=1 uv run pytest` and the
   diff is reviewed before committing. Record mode is refused when `CI` or `GITHUB_ACTIONS` is
   set, so CI only replays what you committed (schemas decision 50).
-- [ ] Fingerprints in recordings start with the plugin name; re-record after any rename.
+- [ ] By the template's convention, fingerprints start with the plugin name; re-record after any rename.
 - [ ] `uv run pytest --cov` passes the 85% coverage gate.
 
 ## Degraded handling
@@ -89,8 +104,13 @@ and when (`horae.engine.executor`, step policy table).
 - [ ] Raise `PluginError("message")` for an expected failure (service down, bad credentials,
   rate limit, malformed answer). The host reports it as a `tool_error`. Any other exception
   is logged to stderr and reported by type only. Do not `sys.exit`, hang or crash the process.
-- [ ] Do not hide a failure behind an empty result: an empty `data` reads as "nothing to do"
-  and the run can end `noop`. Raise instead, so the failure is recorded.
+- [ ] A `PluginError` message is recorded verbatim (only redacted) in the step error and the run
+  record. Keep it short and fixed; never paste an upstream body, a URL with a query or fetched
+  text.
+- [ ] Do not hide a failure behind an empty result: an empty `data` is a successful
+  result: the step is `ok`, nothing is flagged, and downstream steps run on nothing. (`noop`
+  only comes from a reused LLM output with no intents.) Raise instead, so the failure is
+  recorded.
 - [ ] Know what happens next. A `collect` step that calls several sources: if some raise and
   at least one succeeds, the step and the run are `degraded` (error kind `source_failed`), the
   pipeline continues on the partial data, every `act` step is skipped (`partial_input`) so
@@ -99,14 +119,19 @@ and when (`horae.engine.executor`, step policy table).
 - [ ] Make each tool one unit that either returns complete data or raises. Do not return a
   half-filled result as if it were complete: the core cannot tell.
 - [ ] Set timeouts on every outgoing request and retry a bounded number of times. Never loop
-  forever and never retry in a tight loop against a service with rate limits. The run is
-  bounded by `runs.timeout_s` (T08), and a plugin that exceeds it is stopped.
+  forever and never retry in a tight loop against a service with rate limits. Past
+  `runs.timeout_s` (default 900 s, T08) the run is cancelled and marked failed (`timeout`). What
+  kills the plugin process is the per-call `plugin_defaults.call_timeout_s` (default 30 s;
+  startup 10 s). After a timeout, a crash or an oversized message the host restarts the plugin
+  once per run, then reports `plugin_unavailable`.
 - [ ] Proposing an intent that is undeclared, invalid or over the caps is not degradation: the
   core fails the run. Keep intents valid (the SDK checks the cheap rules before sending).
 - [ ] Never swallow `PluginError` in a helper and carry on with stale or default data.
 
 ## Docs
 
+- [ ] `horae:` in the manifest is a real compatibility range (for example `>=0.1,<0.2`), not
+  the template's `>=0`. Add `homepage` (an `https` URL) if you have one.
 - [ ] README title and description are the plugin's own (`scripts/rename.py` does this); no
   template text is left.
 - [ ] README has: what the plugin does, its tools and parameters, how to configure and install
@@ -123,6 +148,12 @@ and when (`horae.engine.executor`, step policy table).
 
 - [ ] `VERSION` in `plugin.py` is bumped, `plugin.yaml` regenerated and `pyproject.toml`
   agrees (semantic versioning: new permissions or a changed tool contract are not a patch).
+- [ ] Changing the licence means changing `LICENSE`, the `license` of `pyproject.toml`, the
+  `manifest(license=...)` call in `plugin.py` and regenerating `plugin.yaml`, together
+  (`scripts/rename.py` skips `LICENSE`).
+- [ ] Until M5, `horae plugin add` installs only `tier: first-party` entries while the runtime
+  is `subprocess` (T04, PLAN §3.3), so a third-party plugin made from this template is refused
+  until M5.
 - [ ] `uv.lock` is current: `UV_LOCKED=1 uv lock --check` passes.
 - [ ] The CI checks are green: `uv run ruff check && uv run ruff format --check`, `uv run
   mypy`, `uv run pytest --cov`, gitleaks. **CI OK** is the aggregate.

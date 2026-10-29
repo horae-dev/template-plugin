@@ -60,5 +60,6 @@ Add the trailers yourself: `git commit --trailer "Graft-Agent: claude-code" --tr
 - [ ] All acceptance criteria met and checked in the PR description
 - [ ] CI green: the **CI OK** check (lockfile, lint, types, tests + coverage, gitleaks)
 - [ ] Docs and examples updated if behaviour changed
+- [ ] [Authoring checklist](docs/authoring-checklist.md) run through for permissions, secrets, untrusted input, fixtures and degraded handling
 - [ ] No new undeclared permissions, secrets or LLM calls
 - [ ] On the issue, record **actuals**: agent attempts, wall-clock time, whether a human took over. These feed the [estimation](https://github.com/horae-dev/horae/blob/main/docs/ESTIMATION.md) recalibration.

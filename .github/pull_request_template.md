@@ -28,7 +28,7 @@ Closes #<issue>
 - [ ] Docs: README sections and permissions table, changelog
 - [ ] Release (if releasing): version bumped, `plugin.yaml` and `uv.lock` current
 
-Checklist: [docs/authoring-checklist.md](../blob/HEAD/docs/authoring-checklist.md)
+Checklist: `docs/authoring-checklist.md` ([link](../blob/HEAD/docs/authoring-checklist.md))
 
 ## Declared additions
 

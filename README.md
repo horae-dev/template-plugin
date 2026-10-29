@@ -69,7 +69,8 @@ dependency bump. Installing it clones the core repository, which must stay publi
    `HORAE_SDK_RECORD=1 uv run pytest` writes the current outputs into `expect`. Review the diff
    before committing: what you commit is what CI checks. Include hostile inputs (Tasks
    signifiers, Markdown, links) for every untrusted field.
-7. **Check your work** against the [authoring checklist](docs/authoring-checklist.md), then **run CI locally**, as CI does:
+7. **Check your work** against the
+   [authoring checklist](docs/authoring-checklist.md), then **run CI locally**, as CI does:
 
    ```
    uv lock --check
