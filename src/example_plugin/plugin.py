@@ -11,19 +11,41 @@ the subject reaches the task title only through `intents.task_create`, which esc
 Obsidian Tasks (a subject holding `📅 2020-01-01` must not schedule the task).
 """
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any, Protocol
+from urllib.parse import urlsplit
 
 from horae_sdk import Call, Output, Permissions, Plugin, intents
 
 NAME = "example"
 """The plugin's name, also the namespace of its refs (`example.inbox`) and fingerprints."""
 VERSION = "0.1.0"
+HORAE = ">=0,<0.2"
+"""`horae` of `plugin.yaml`: the core versions this plugin is written for."""
 COMMAND = ["python3", "-m", "example_plugin"]
 """`runtime.command` of `plugin.yaml`. When installing, pin an absolute interpreter that has
 this package (the host's `PATH` is fixed and its working directory empty)."""
 PERMISSIONS = Permissions(intents=["task.create"])
 """Declare the least you need: every network host, secret, path and intent type."""
+
+Allows = Callable[[str], bool | None]
+"""`Call.host_allowed` / `ApplyRequest.host_allowed`: `True` when the core approves the URL
+(an `https` URL on a host of `permissions.network`, or an `http(s)` URL on an exact `host:port`
+of `permissions.network_local`), `False` when it does not, `None` when the core is older and sent
+no list (the plugin's own checks then stand)."""
+
+
+def host_refusal(allows: Allows, url: str) -> str | None:
+    """The reason to refuse `url` before contacting it, or `None` to go ahead.
+
+    This example reads no network (its `PERMISSIONS` declare none), so nothing calls it; it
+    shows how a plugin that does handles the three answers of `host_allowed`: only `False` is a
+    refusal, `True` and `None` go on. It names the host, never the rest of the URL (which can
+    hold a token). For a protocol that is not HTTP (IMAP, SMTP), ask
+    `call.address_allowed(host, port)` the same way."""
+    if allows(url) is False:
+        return f"host_not_approved: {urlsplit(url).hostname}"
+    return None
 
 
 class Inbox(Protocol):
@@ -70,4 +92,4 @@ def build(inbox: Inbox) -> Plugin:
 
 def manifest() -> dict[str, Any]:
     """The `plugin.yaml` document of this plugin (`python -m example_plugin --manifest`)."""
-    return build(SampleInbox()).manifest(command=COMMAND, license="Apache-2.0")
+    return build(SampleInbox()).manifest(command=COMMAND, horae=HORAE, license="Apache-2.0")
