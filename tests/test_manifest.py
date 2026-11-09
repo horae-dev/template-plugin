@@ -8,6 +8,7 @@ import pytest
 import yaml
 from horae_sdk import Permissions, dump_manifest
 from horae_sdk import manifest as build_manifest
+from horae_sdk.manifest import SINK_OPERATIONS
 
 from example_plugin import manifest
 from example_plugin.__main__ import HEADER, main
@@ -28,6 +29,7 @@ def test_plugin_yaml_passes_the_sdk_checks() -> None:
     permissions = Permissions(
         intents=document["permissions"].get("intents", []),
         network=document["permissions"].get("network", []),
+        network_local=document["permissions"].get("network_local", []),
         secrets=document["permissions"].get("secrets", []),
         read=paths.get("read", []),
         write=paths.get("write", []),
@@ -51,6 +53,14 @@ def test_plugin_yaml_is_what_the_code_declares() -> None:
     with `uv run python -m example_plugin --manifest > plugin.yaml` after changing them."""
     assert on_disk() == manifest()
     assert PLUGIN_YAML.read_text("utf-8") == HEADER + dump_manifest(manifest())
+
+
+def test_no_tool_takes_a_reserved_sink_operation_name() -> None:
+    """`<ns>.read`, `.apply`, `.restore`, `.restore_status`... belong to a sink: a source or
+    transform ref may not use them (the SDK refuses it)."""
+    for refs in on_disk()["provides"].values():
+        for ref in refs:
+            assert ref.split(".", 1)[1] not in SINK_OPERATIONS
 
 
 def test_main_prints_the_manifest(capsys: pytest.CaptureFixture[str]) -> None:
