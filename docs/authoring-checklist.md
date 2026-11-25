@@ -158,5 +158,5 @@ and when (`horae.engine.executor`, step policy table).
 - [ ] The CI checks are green: `uv run ruff check && uv run ruff format --check`, `uv run
   mypy`, `uv run pytest --cov`, gitleaks. **CI OK** is the aggregate.
 - [ ] Renovate is enabled on the repository, and its pull requests are reviewed like any change
-  (a `horae-sdk` bump through lock file maintenance moves the pinned SDK commit).
+  (a `horae-sdk` release is proposed after 7 days, `minimumReleaseAge`).
 - [ ] Tag the commit, and give installers the commit to pin (`horae plugin add https://github.com/<owner>/<repo>@<sha>`).

@@ -19,7 +19,7 @@ from horae_sdk import Call, Output, Permissions, Plugin, intents
 
 NAME = "example"
 """The plugin's name, also the namespace of its refs (`example.inbox`) and fingerprints."""
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 HORAE = ">=0,<0.2"
 """`horae` of `plugin.yaml`: the core versions this plugin is written for."""
 COMMAND = ["python3", "-m", "example_plugin"]

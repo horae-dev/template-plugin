@@ -53,7 +53,7 @@ Add the trailers yourself: `git commit --trailer "Graft-Agent: claude-code" --tr
 ## Review
 - Graft posts an intent card and applies [`graft.yaml`](graft.yaml).
 - Trivial and small low-risk changes can be approved without a human.
-- Changes touching sensitive paths (`plugin.yaml` (permissions), anything under `auth/`, workflows, `pyproject.toml` (dependencies), `uv.lock` (the pinned dependencies, including the horae-sdk commit), `.pre-commit-config.yaml`, `renovate.json`), large changes and anything Graft rates `sensitive` need the maintainer.
+- Changes touching sensitive paths (`plugin.yaml` (permissions), anything under `auth/`, workflows, `pyproject.toml` (dependencies), `uv.lock` (the pinned dependencies, including horae-sdk), `.pre-commit-config.yaml`, `renovate.json`), large changes and anything Graft rates `sensitive` need the maintainer.
 - Address review comments in new commits; don't force-push over reviewed commits.
 
 ## Definition of done
