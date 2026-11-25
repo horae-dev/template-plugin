@@ -24,12 +24,11 @@ Template repository for writing a [Horae](https://github.com/horae-dev/horae) pl
 | `docs/authoring-checklist.md` | The [plugin authoring checklist](docs/authoring-checklist.md): permissions, secrets, untrusted input, recorded fixtures, degraded handling, docs and release. Go through it before each pull request and release. |
 | `graft.yaml`, `AGENTS.md` | Review policy and the working rules for agents and humans. |
 
-`horae-sdk` 0.6 (`>=0.6,<0.7`) is not on PyPI yet: `pyproject.toml` takes it from the core repository's `main`
-branch (`[tool.uv.sources]`), and `uv.lock` pins the exact commit, so every build uses the
-same SDK until the lock changes. Renovate's weekly lock file maintenance moves it to the latest
-`main` (or run `uv lock --upgrade-package horae-sdk`); review that pull request like any
-dependency bump. Installing it clones the core repository, which must stay public. Once
-`horae-sdk` is published, delete that table: the requirement then resolves from PyPI.
+`horae-sdk` 0.9 (`>=0.9,<0.10`) comes from PyPI, pinned with hashes by `uv.lock`, so every
+build uses the same SDK until the lock changes. Renovate waits 7 days before proposing a new
+release (`minimumReleaseAge`); review that pull request like any dependency bump. Do not add
+resolution settings such as `exclude-newer` to `[tool.uv]`, nor a git source: `horae plugin add`
+installs with `uv sync --locked --no-config`, which ignores them, and refuses a git source.
 
 ## Use this template
 
@@ -90,7 +89,7 @@ dependency bump. Installing it clones the core repository, which must stay publi
 Follow [CONTRIBUTING](https://github.com/horae-dev/marketplace) in the
 [marketplace repository](https://github.com/horae-dev/marketplace) to publish a plugin and for
 its review policy (the guide may still be in an open pull request: read it from the repository).
-The conventions below are those of `horae-sdk` 0.6, as the first-party plugins use them.
+The conventions below are those of `horae-sdk` 0.9, as the first-party plugins use them.
 
 **Network.** Declare every host in `permissions.network` (an `https` host name; no IP literal).
 The core sends the hosts approved in `horae.lock` with every call, and the plugin asks before it
